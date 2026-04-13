@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Egen kalk V7 Pro - Leon Aabak</title>
+    <title>Total Kalkulator - Leon Aabak</title>
     <style>
         :root {
             --bg-color: #0f0f13;
@@ -379,10 +379,23 @@
             calcView.style.display = 'none';
             historyPanel.style.display = 'block';
 
+            // Ordbok for emojier basert på mappenavn
+            const folderIcons = {
+                "Favoritter": "⭐",
+                "Grunnleggende": "🧮",
+                "Algebra": "📉",
+                "Geometri": "📐",
+                "Matte": "➕",
+                "Statistikk": "📊",
+                "Fysikk": "🧪",
+                "Økonomi": "💰",
+                "Diverse": "✨"
+            };
+
             if(favorites.length > 0) {
                 const favCard = document.createElement('div');
                 favCard.className = 'card glass-panel';
-                favCard.innerHTML = '<span style="font-size: 2rem">⭐</span><br>Favoritter';
+                favCard.innerHTML = `<span style="font-size: 2rem">${folderIcons["Favoritter"]}</span><br>Favoritter`;
                 favCard.onclick = () => openFolder("Favoritter");
                 folderView.appendChild(favCard);
             }
@@ -391,7 +404,8 @@
             folderNames.forEach(name => {
                 const card = document.createElement('div');
                 card.className = 'card glass-panel';
-                card.innerHTML = `<span style="font-size: 2rem">📁</span><br>${name}`;
+                const icon = folderIcons[name] || "📁"; // Henter riktig ikon, eller vanlig mappe som backup
+                card.innerHTML = `<span style="font-size: 2rem">${icon}</span><br>${name}`;
                 card.onclick = () => openFolder(name);
                 folderView.appendChild(card);
             });
