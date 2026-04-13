@@ -18,7 +18,7 @@
             --danger: #ff4b2b;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
 
         body {
             background-color: var(--bg-color);
@@ -63,7 +63,9 @@
         #calc-view { display: none; width: 100%; max-width: 600px; padding: 30px; margin-top: 10px; }
         #pre-calc-formula { background-color: var(--formula-bg); border: 1px dashed var(--primary); padding: 15px; text-align: center; border-radius: 8px; margin-bottom: 20px; color: var(--primary); font-family: monospace; font-weight: bold; }
 
-        input, select { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background-color: var(--input-bg); color: white; font-size: 1rem; }
+        input, select { width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background-color: var(--input-bg); color: white; font-size: 1rem; outline: none; }
+        input:focus { border-color: var(--primary); }
+
         .action-btn { width: 100%; padding: 16px; border: none; border-radius: 8px; background: linear-gradient(90deg, var(--secondary), var(--primary)); color: white; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
         .back-btn { background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1); padding: 10px 18px; border-radius: 8px; cursor: pointer; margin-bottom: 20px; margin-right: 10px; }
 
@@ -98,7 +100,7 @@
     </div>
 
     <div id="search-container">
-        <input type="text" id="search-bar" placeholder="🔍 Søk i alle funksjoner...">
+        <input type="text" id="search-bar" placeholder="🔍 Søk i alle 36 funksjoner...">
     </div>
 
     <div id="folder-view" class="grid-container"></div>
@@ -216,6 +218,21 @@
                 let a=parseFloat(document.getElementById('i1').value), b=parseFloat(document.getElementById('i2').value), x=parseFloat(document.getElementById('i3').value);
                 return { res: a*Math.pow(b,x), exp: `${a} * ${b}^${x} = ${a*Math.pow(b,x)}`, graph: (v) => a*Math.pow(b,v) };
             }},
+            { id: 34, folder: "Algebra", name: "Asymptoter (Rasjonell)", formula: "f(x) = (ax+b)/(cx+d)", html: '<input type="number" id="i1" placeholder="a"><input type="number" id="i2" placeholder="b"><input type="number" id="i3" placeholder="c"><input type="number" id="i4" placeholder="d">', calc: () => {
+                let a=parseFloat(document.getElementById('i1').value), b=parseFloat(document.getElementById('i2').value), c=parseFloat(document.getElementById('i3').value), d=parseFloat(document.getElementById('i4').value);
+                let vert = -d/c; let hori = a/c;
+                return { res: `Vertikal: x = ${vert.toFixed(2)}, Horisontal: y = ${hori.toFixed(2)}`, exp: `Vertikal: cx+d=0 -> x = -d/c = -${d}/${c}\nHorisontal: x->∞ -> y = a/c = ${a}/${c}`, graph: (x) => (a*x+b)/(c*x+d) };
+            }},
+            { id: 35, folder: "Algebra", name: "Rasjonal ligning", formula: "(ax+b)/(cx+d) = k", html: '<input type="number" id="i1" placeholder="a"><input type="number" id="i2" placeholder="b"><input type="number" id="i3" placeholder="c"><input type="number" id="i4" placeholder="d"><input type="number" id="i5" placeholder="k">', calc: () => {
+                let a=parseFloat(document.getElementById('i1').value), b=parseFloat(document.getElementById('i2').value), c=parseFloat(document.getElementById('i3').value), d=parseFloat(document.getElementById('i4').value), k=parseFloat(document.getElementById('i5').value);
+                let x = (k*d - b) / (a - k*c);
+                return { res: `x = ${x.toFixed(2)}`, exp: `Ligning: ax+b = k(cx+d)\nax+b = kcx + kd\nx(a-kc) = kd-b\nx = (kd-b)/(a-kc)` };
+            }},
+            { id: 36, folder: "Algebra", name: "Symmetrilinje", formula: "x = -b / 2a", html: '<input type="number" id="i1" placeholder="a"><input type="number" id="i2" placeholder="b">', calc: () => {
+                let a=parseFloat(document.getElementById('i1').value), b=parseFloat(document.getElementById('i2').value);
+                let x = -b/(2*a);
+                return { res: `x = ${x.toFixed(2)}`, exp: `Symmetrilinje (der f'(x)=0):\nx = -b / 2a = -${b} / (2*${a})` };
+            }},
 
             // GEOMETRI
             { id: 5, folder: "Geometri", name: "Pytagoras", formula: "a² + b² = c²", html: '<input type="number" id="i1" placeholder="a"><input type="number" id="i2" placeholder="b">', calc: () => {
@@ -295,7 +312,7 @@
                 return { res: res.toFixed(2) + " kr", exp: `${p} / (1 - ${r}/100) = ${res.toFixed(2)}` };
             }},
 
-            // KONVERTERING (NY)
+            // KONVERTERING
             { id: 31, folder: "Konvertering", name: "CM til Feet", formula: "cm / 30.48", html: '<input type="number" id="i1" placeholder="Centimeter">', calc: () => {
                 let cm=parseFloat(document.getElementById('i1').value);
                 return { res: (cm / 30.48).toFixed(4) + " ft", exp: `${cm} / 30.48` };
@@ -304,7 +321,7 @@
                 let hg=parseFloat(document.getElementById('i1').value);
                 return { res: (hg * 100) + " g", exp: `${hg} * 100` };
             }},
-            { id: 33, folder: "Konvertering", name: "Liter til dl/ml", formula: "L * 10 / L * 1000", html: '<input type="number" id="i1" placeholder="Liter">', calc: () => {
+            { id: 33, folder: "Konvertering", name: "Liter til dl/ml", formula: "L -> dl & ml", html: '<input type="number" id="i1" placeholder="Liter">', calc: () => {
                 let l=parseFloat(document.getElementById('i1').value);
                 return { res: `${l*10} dl / ${l*1000} ml` };
             }},
@@ -314,7 +331,7 @@
                 let w=parseFloat(document.getElementById('i1').value), h=parseFloat(document.getElementById('i2').value);
                 let bmi = w/(h*h); return { res: bmi.toFixed(1), exp: bmi < 18.5 ? "Undervekt" : bmi < 25 ? "Normal" : "Overvekt" };
             }},
-            { id: 20, folder: "Diverse", name: "Om appen", formula: "Info", html: '<p>Utviklet av Leon Aabak. V8 Pro.</p>', calc: () => ({res:"Leon Aabak V8 Pro", exp: "Nå med over 33 funksjoner inkludert logg-sletting."}) }
+            { id: 20, folder: "Diverse", name: "Om appen", formula: "Info", html: '<p>Utviklet av Leon Aabak. V10 Pro.</p>', calc: () => ({res:"Leon Aabak V10 Pro", exp: "Fullstendig bibliotek med 36 funksjoner."}) }
         ];
 
         function clearHistory() {
@@ -395,11 +412,39 @@
         function drawGraph(f) {
             canvas.width = canvas.parentElement.clientWidth; canvas.height = 350;
             const w=canvas.width, h=canvas.height, ox=w/2, oy=h/2, s=25;
-            ctx.clearRect(0,0,w,h); ctx.strokeStyle = '#222'; ctx.beginPath();
-            for(let i=ox%s;i<w;i+=s){ctx.moveTo(i,0);ctx.lineTo(i,h);} for(let i=oy%s;i<h;i+=s){ctx.moveTo(0,i);ctx.lineTo(w,i);} ctx.stroke();
-            ctx.strokeStyle = '#555'; ctx.beginPath(); ctx.moveTo(0,oy); ctx.lineTo(w,oy); ctx.moveTo(ox,0); ctx.lineTo(ox,h); ctx.stroke();
-            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary'); ctx.lineWidth = 2; ctx.beginPath();
-            for(let px=0; px<=w; px+=2) { let mx=(px-ox)/s, my=f(mx), py=oy-(my*s); if(px===0)ctx.moveTo(px,py); else ctx.lineTo(px,py); } ctx.stroke();
+            ctx.clearRect(0,0,w,h); 
+            
+            // Grid
+            ctx.strokeStyle = '#222'; ctx.lineWidth = 1; ctx.beginPath();
+            for(let i=ox%s;i<w;i+=s){ctx.moveTo(i,0);ctx.lineTo(i,h);} 
+            for(let i=oy%s;i<h;i+=s){ctx.moveTo(0,i);ctx.lineTo(w,i);} ctx.stroke();
+            
+            // Akser
+            ctx.strokeStyle = '#555'; ctx.lineWidth = 2; ctx.beginPath(); 
+            ctx.moveTo(0,oy); ctx.lineTo(w,oy); ctx.moveTo(ox,0); ctx.lineTo(ox,h); ctx.stroke();
+            
+            // Funksjon
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary'); 
+            ctx.lineWidth = 2; ctx.beginPath();
+            
+            let lastY = null;
+            for(let px=0; px<=w; px+=1) { 
+                let mx=(px-ox)/s; 
+                let my=f(mx); 
+                let py=oy-(my*s); 
+                
+                // Sjekker for asymptoter eller store hopp
+                if (lastY !== null && Math.abs(py - lastY) > h/2) {
+                    ctx.stroke(); // Avslutter nåværende linje
+                    ctx.beginPath(); // Starter ny linje etter bruddet
+                    ctx.moveTo(px, py);
+                } else if (!isNaN(py) && isFinite(py)) {
+                    if (lastY === null) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                lastY = py;
+            } 
+            ctx.stroke();
         }
 
         searchBar.oninput = () => {
@@ -411,7 +456,10 @@
             });
         };
 
-        window.onkeydown = (e) => { if(e.key === 'Enter' && calcView.style.display === 'block') executeCalc(); if(e.key === 'Escape') showHome(); };
+        window.onkeydown = (e) => { 
+            if(e.key === 'Enter' && calcView.style.display === 'block') executeCalc(); 
+            if(e.key === 'Escape') showHome(); 
+        };
         renderFolders();
     </script>
 </body>
