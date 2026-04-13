@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Egen kalk V7 Pro - Leon Aabak</title>
+    <style>
+        :root {
+            --bg-color: #0f0f13;
+            --card-bg: rgba(30, 30, 35, 0.7);
+            --input-bg: rgba(45, 45, 50, 0.8);
+            --primary: #00d2ff;
+            --secondary: #3a7bd5;
+            --text-main: #ffffff;
+            --text-muted: #aaaaaa;
+            --formula-bg: rgba(42, 42, 48, 0.8);
+            --fav-color: #ffd700;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: '-apple-system', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.03) 0%, transparent 70%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 50px;
+        }
+
+        .header {
+            margin-top: 40px;
+            font-size: clamp(2.5rem, 8vw, 3.5rem);
+            font-weight: 800;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .author-tag {
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        #theme-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .theme-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.3s;
+        }
+        .theme-dot.active { border-color: white; transform: scale(1.2); }
+
+        .glass-panel {
+            background-color: var(--card-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+        }
+
+        #search-container { width: 100%; max-width: 1000px; padding: 0 20px; margin-bottom: 20px; }
+        #search-bar {
+            width: 100%; padding: 18px; font-size: 1.1rem; border-radius: 12px;
+            background-color: var(--input-bg); border: 1px solid rgba(255,255,255,0.1);
+            color: white; outline: none;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px;
+        }
+
+        .card {
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 120px;
+            position: relative;
+        }
+        .card:hover { transform: translateY(-5px); background-color: rgba(255, 255, 255, 0.08); border-color: var(--primary); }
+
+        .star-btn {
+            position: absolute; top: 10px; right: 10px; font-size: 1.2rem; 
+            color: rgba(255,255,255,0.2); background: none; border: none; cursor: pointer;
+        }
+        .star-btn.active { color: var(--fav-color); }
+
+        #calc-view {
+            display: none; width: 100%; max-width: 600px; padding: 30px; margin-top: 10px;
+        }
+
+        #pre-calc-formula {
+            background-color: var(--formula-bg); border: 1px dashed var(--primary);
+            padding: 15px; text-align: center; border-radius: 8px; margin-bottom: 20px;
+            color: var(--primary); font-family: monospace; font-weight: bold;
+        }
+
+        input, select {
+            width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1); background-color: var(--input-bg);
+            color: white; font-size: 1rem;
+        }
+
+        .action-btn {
+            width: 100%; padding: 16px; border: none; border-radius: 8px;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            color: white; font-size: 1.1rem; font-weight: bold; cursor: pointer;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 18px; border-radius: 8px; cursor: pointer; margin-bottom: 20px; margin-right: 10px;
+        }
+
+        #result-container { display: none; margin-top: 25px; }
+        #result-box {
+            padding: 20px; background-color: rgba(0, 210, 255, 0.05);
+            border-left: 4px solid var(--primary); border-radius: 4px; font-size: 1.3rem; font-weight: bold;
+        }
+        #explanation-box {
+            padding: 15px; background-color: rgba(0,0,0,0.2); border-radius: 8px;
+            font-size: 0.95rem; color: #ccc; line-height: 1.6; margin-top: 15px; font-family: monospace; white-space: pre-wrap;
+        }
+
+        #graph-container {
+            display: none; width: 100%; background: #000; border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; overflow: hidden; margin-top: 20px;
+        }
+        canvas { display: block; width: 100%; height: 350px; }
+
+        #history-panel { width: 100%; max-width: 1000px; padding: 25px; margin: 20px 0; }
+        .history-item { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; }
+        
+        #toast {
+            position: fixed; bottom: -50px; left: 50%; transform: translateX(-50%);
+            background: var(--primary); color: #000; padding: 10px 25px; border-radius: 30px; font-weight: bold; transition: 0.4s;
+        }
+        #toast.show { bottom: 30px; }
+
+        .footer { margin-top: 40px; color: rgba(255,255,255,0.2); font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+    <div class="header" onclick="showHome()">Egen kalk V7</div>
+    <div class="author-tag">Pro Edition by Leon Aabak</div>
+
+    <div id="theme-selector">
+        <div class="theme-dot" style="background: #00d2ff" onclick="setTheme('#00d2ff', '#3a7bd5', 0)"></div>
+        <div class="theme-dot" style="background: #00ff87" onclick="setTheme('#00ff87', '#60efff', 1)"></div>
+        <div class="theme-dot" style="background: #e000ff" onclick="setTheme('#e000ff', '#7000ff', 2)"></div>
+        <div class="theme-dot" style="background: #ff8c00" onclick="setTheme('#ff8c00', '#e52d27', 3)"></div>
+        <div class="theme-dot" style="background: #ff0844" onclick="setTheme('#ff0844', '#ffb199', 4)"></div>
+    </div>
+
+    <div id="search-container">
+        <input type="text" id="search-bar" placeholder="🔍 Søk i alle 29 funksjoner...">
+    </div>
+
+    <div id="folder-view" class="grid-container"></div>
+    
+    <div id="list-view" class="grid-container" style="display: none;"></div>
+
+    <div id="history-panel" class="glass-panel">
+        <h3 style="margin-bottom: 15px; color: var(--primary);">🕒 Siste utregninger</h3>
+        <div id="history-list"><i>Ingen historikk enda.</i></div>
+    </div>
+
+    <div id="calc-view" class="glass-panel">
+        <div style="display: flex;">
+            <button class="back-btn" onclick="showHome()">← Hjem</button>
+            <button class="back-btn" id="btn-back-list">← Tilbake</button>
+        </div>
+        <h2 id="calc-title" style="margin-bottom: 15px; color: var(--primary);"></h2>
+        <div id="pre-calc-formula"></div>
+        <div id="input-container"></div>
+        <button class="action-btn" onclick="executeCalc()">Regn ut (Enter)</button>
+        
+        <div id="result-container">
+            <div id="result-box"></div>
+            <div id="explanation-box"></div>
+            <div id="graph-container"><canvas id="graphCanvas"></canvas></div>
+            <button onclick="copyResult()" style="margin-top: 15px; background: none; border: 1px solid var(--primary); color: var(--primary); padding: 8px; border-radius: 5px; cursor: pointer;">Kopier svar</button>
+        </div>
+    </div>
+
+    <div id="toast">Kopiert! ✅</div>
+    <div class="footer">Egen kalk V7 Pro © 2026 | Leon Aabak</div>
+
+    <script>
+        const folderView = document.getElementById('folder-view');
+        const listView = document.getElementById('list-view');
+        const calcView = document.getElementById('calc-view');
+        const searchBar = document.getElementById('search-bar');
+        const historyPanel = document.getElementById('history-panel');
+
+        function gcd(a, b) { return b === 0 ? Math.abs(a) : gcd(b, a % b); }
+
+        function setTheme(primary, secondary, index) {
+            document.documentElement.style.setProperty('--primary', primary);
+            document.documentElement.style.setProperty('--secondary', secondary);
+            document.querySelectorAll('.theme-dot').forEach((dot, idx) => dot.classList.toggle('active', idx === index));
+            localStorage.setItem('calcTheme', JSON.stringify({p: primary, s: secondary, i: index}));
+        }
+
+        let savedTheme = JSON.parse(localStorage.getItem('calcTheme'));
+        if(savedTheme) setTheme(savedTheme.p, savedTheme.s, savedTheme.i);
+        else setTheme('#00d2ff', '#3a7bd5', 0);
+
+        let favorites = JSON.parse(localStorage.getItem('calcFavorites')) || [];
+        let historyData = JSON.parse(localStorage.getItem('calcHistory')) || [];
+        let activeGraphFunc = null;
+        let currentFolder = null;
+        let currentCalc = null;
+
+        const calculators = [
+            { id: 1, folder: "Grunnleggende", name: "Prosent", formula: "(p / 100) * tall", html: '<input type="number" id="i1" placeholder="Prosent (%)"><input type="number" id="i2" placeholder="Av tall">', calc: () => {
+                let p = parseFloat(document.getElementById('i1').value), t = parseFloat(document.getElementById('i2').value);
+                return { res: (p/100)*t, exp: `(${p}/100) * ${t} = ${(p/100)*t}` };
+            }},
+            { id: 2, folder: "Grunnleggende", name: "Deling", formula: "a / b", html: '<input type="number" id="i1" placeholder="a"><input type="number" id="i2" placeholder="b">', calc: () => {
+                let a = parseFloat(document.getElementById('i1').value), b = parseFloat(document.getElementById('i2').value);
+                return b === 0 ? {res: "Feil: Kan ikke dele på 0"} : { res: a/b, exp: `${a} / ${b} = ${a/b}` };
+            }},
+            { id: 7, folder: "Grunnleggende", name: "Gange", formula: "a * b", html: '<input type="number" id="i1" placeholder="a"><input type="number" id="i2" placeholder="b">', calc: () => {
+                let a = parseFloat(document.getElementById('i1').value), b = parseFloat(document.getElementById('i2').value);
+                return { res: a*b, exp: `${a} * ${b} = ${a*b}` };
+            }},
+            { id: 21, folder: "Grunnleggende", name: "Potens", formula: "a^b", html: '<input type="number" id="i1" placeholder="Grunntall"><input type="number" id="i2" placeholder="Eksponent">', calc: () => {
+                let a = parseFloat(document.getElementById('i1').value), b = parseFloat(document.getElementById('i2').value);
+                return { res: Math.pow(a,b), exp: `${a} ^ ${b} = ${Math.pow(a,b)}` };
+            }},
+            { id: 27, folder: "Grunnleggende", name: "Kvadratrot", formula: "√x", html: '<input type="number" id="i1" placeholder="x">', calc: () => {
+                let x = parseFloat(document.getElementById('i1').value);
+                return x < 0 ? {res: "Feil: Negativ rot"} : { res: Math.sqrt(x).toFixed(4), exp: `√${x} = ${Math.sqrt(x).toFixed(4)}` };
+            }},
+            { id: 23, folder: "Algebra", name: "Lineær funksjon", formula: "y = ax + b", html: '<input type="number" id="i1" placeholder="x1"><input type="number" id="i2" placeholder="y1"><input type="number" id="i3" placeholder="x2"><input type="number" id="i4" placeholder="y2">', calc: () => {
+                let x1=parseFloat(document.getElementById('i1').value), y1=parseFloat(document.getElementById('i2').value), x2=parseFloat(document.getElementById('i3').value), y2=parseFloat(document.getElementById('i4').value);
+                let a = (y2-y1)/(x2-x1), b = y1-(a*x1);
+                return { res: `y = ${a}x ${b>=0?'+':''} ${b}`, exp: `a = (${y2}-${y1})/(${x2}-${x1}) = ${a}\nb = ${y1}-(${a}*${x1}) = ${b}`, graph: (x) => a*x+b };
+            }},
+            { id: 11, folder: "Algebra", name: "Andregrad (ABC)", formula: "ax² + bx + c = 0", html: '<input type="number" id="i1" placeholder="a"><input type="number" id="i2" placeholder="b"><input type="number" id="i3" placeholder="c">', calc: () => {
+                let a=parseFloat(document.getElementById('i1').value), b=parseFloat(document.getElementById('i2').value), c=parseFloat(document.getElementById('i3').value);
+                let d = (b*b)-(4*a*c);
+                if(d<0) return {res: "Ingen reell løsning", graph: (x) => a*x*x+b*x+c};
+                let x1 = (-b+Math.sqrt(d))/(2*a), x2 = (-b-Math.sqrt(d))/(2*a);
+                return { res: `x1: ${x1.toFixed(2)}, x2: ${x2.toFixed(2)}`, exp: `Diskriminant: ${d}\nx = (-${b} ± √${d}) / ${2*a}`, graph: (x) => a*x*x+b*x+c };
+            }},
+            { id: 13, folder: "Algebra", name: "Topp/Bunnpunkt", formula: "x = -b / 2a", html: '<input type="number" id="i1" placeholder="a"><input type="number" id="i2" placeholder="b"><input type="number" id="i3" placeholder="c">', calc: () => {
+                let a=parseFloat(document.getElementById('i1').value), b=parseFloat(document.getElementById('i2').value), c=parseFloat(document.getElementById('i3').value);
+                let x = -b/(2*a), y = a*x*x+b*x+c;
+                return { res: `Punkt: (${x.toFixed(2)}, ${y.toFixed(2)})`, exp: `x = -${b}/(2*${a}) = ${x}\ny = f(${x}) = ${y}`, graph: (val) => a*val*val+b*val+c };
+            }},
+            { id: 14, folder: "Algebra", name: "Nullpunkt (Lineær)", formula: "ax + b = 0", html: '<input type="number" id="i1" placeholder="a"><input type="number" id="i2" placeholder="b">', calc: () => {
+                let a=parseFloat(document.getElementById('i1').value), b=parseFloat(document.getElementById('i2').value);
+                return { res: `x = ${-b/a}`, exp: `ax = -b\nx = -${b}/${a}`, graph: (x) => a*x+b };
+            }},
+            { id: 10, folder: "Algebra", name: "Momentan vekstfart", formula: "f'(x) = 2ax + b", html: '<input type="number" id="i1" placeholder="a"><input type="number" id="i2" placeholder="b"><input type="number" id="i3" placeholder="x">', calc: () => {
+                let a=parseFloat(document.getElementById('i1').value), b=parseFloat(document.getElementById('i2').value), x=parseFloat(document.getElementById('i3').value);
+                return { res: `f'(${x}) = ${2*a*x+b}`, exp: `Derivert: ${2*a}x + ${b}\nSatt inn x: ${2*a}*${x} + ${b} = ${2*a*x+b}` };
+            }},
+            { id: 9, folder: "Algebra", name: "Gj.snittlig vekstfart", formula: "Δy / Δx", html: '<input type="number" id="i1" placeholder="x1"><input type="number" id="i2" placeholder="y1"><input type="number" id="i3" placeholder="x2"><input type="number" id="i4" placeholder="y2">', calc: () => {
+                let x1=parseFloat(document.getElementById('i1').value), y1=parseFloat(document.getElementById('i2').value), x2=parseFloat(document.getElementById('i3').value), y2=parseFloat(document.getElementById('i4').value);
+                return { res: `Vekstfart: ${(y2-y1)/(x2-x1)}`, exp: `(${y2}-${y1}) / (${x2}-${x1}) = ${(y2-y1)/(x2-x1)}` };
+            }},
+            { id: 12, folder: "Algebra", name: "Eksponentiell", formula: "y = a * b^x", html: '<input type="number" id="i1" placeholder="a"><input type="number" id="i2" placeholder="b"><input type="number" id="i3" placeholder="x">', calc: () => {
+                let a=parseFloat(document.getElementById('i1').value), b=parseFloat(document.getElementById('i2').value), x=parseFloat(document.getElementById('i3').value);
+                return { res: a*Math.pow(b,x), exp: `${a} * ${b}^${x} = ${a*Math.pow(b,x)}`, graph: (v) => a*Math.pow(b,v) };
+            }},
+            { id: 5, folder: "Geometri", name: "Pytagoras", formula: "a² + b² = c²", html: '<input type="number" id="i1" placeholder="a"><input type="number" id="i2" placeholder="b">', calc: () => {
+                let a=parseFloat(document.getElementById('i1').value), b=parseFloat(document.getElementById('i2').value);
+                let c = Math.sqrt(a*a+b*b);
+                return { res: `c = ${c.toFixed(2)}`, exp: `√(${a}² + ${b}²) = √(${a*a+b*b}) = ${c.toFixed(2)}` };
+            }},
+            { id: 24, folder: "Geometri", name: "Areal Sirkel", formula: "πr²", html: '<input type="number" id="i1" placeholder="r">', calc: () => {
+                let r=parseFloat(document.getElementById('i1').value);
+                return { res: (Math.PI*r*r).toFixed(2), exp: `π * ${r}² = ${(Math.PI*r*r).toFixed(2)}` };
+            }},
+            { id: 25, folder: "Geometri", name: "Kulevolum", formula: "(4/3)πr³", html: '<input type="number" id="i1" placeholder="r">', calc: () => {
+                let r=parseFloat(document.getElementById('i1').value);
+                return { res: ((4/3)*Math.PI*Math.pow(r,3)).toFixed(2), exp: `(4/3)*π*${r}³ = ${((4/3)*Math.PI*Math.pow(r,3)).toFixed(2)}` };
+            }},
+            { id: 8, folder: "Geometri", name: "Volum Boks", formula: "l * b * h", html: '<input type="number" id="i1" placeholder="l"><input type="number" id="i2" placeholder="b"><input type="number" id="i3" placeholder="h">', calc: () => {
+                let l=parseFloat(document.getElementById('i1').value), b=parseFloat(document.getElementById('i2').value), h=parseFloat(document.getElementById('i3').value);
+                return { res: l*b*h, exp: `${l} * ${b} * ${h} = ${l*b*h}` };
+            }},
+            { id: 15, folder: "Geometri", name: "Trigonometri (Vinkel)", formula: "sin(v), cos(v)", html: '<input type="number" id="i1" placeholder="Grader">', calc: () => {
+                let v=parseFloat(document.getElementById('i1').value), r = v*(Math.PI/180);
+                return { res: `Sin: ${Math.sin(r).toFixed(3)}, Cos: ${Math.cos(r).toFixed(3)}`, graph: (x) => Math.sin(x) };
+            }},
+            { id: 16, folder: "Geometri", name: "Eksakt Trig", formula: "Vinkelverdier", html: '<select id="i1"><option value="30">30°</option><option value="45">45°</option><option value="60">60°</option><option value="90">90°</option></select>', calc: () => {
+                let v=document.getElementById('i1').value;
+                const m = {"30":"Sin: 1/2, Cos: √3/2", "45":"Sin: √2/2, Cos: √2/2", "60":"Sin: √3/2, Cos: 1/2", "90":"Sin: 1, Cos: 0"};
+                return { res: m[v] };
+            }},
+            { id: 17, folder: "Geometri", name: "Trigonometri (Lengde)", formula: "v = sin⁻¹(o/h)", html: '<input type="number" id="i1" placeholder="Motstående"><input type="number" id="i2" placeholder="Hypotenus">', calc: () => {
+                let o=parseFloat(document.getElementById('i1').value), h=parseFloat(document.getElementById('i2').value);
+                let grad = Math.asin(o/h)*(180/Math.PI);
+                return { res: `Vinkel: ${grad.toFixed(2)}°`, exp: `asin(${o}/${h}) = ${grad.toFixed(2)}°` };
+            }},
+            { id: 3, folder: "Matte", name: "Brøk (Forenkle)", formula: "a/b -> c/d", html: '<input type="number" id="i1" placeholder="Teller"><input type="number" id="i2" placeholder="Nevner">', calc: () => {
+                let a=parseInt(document.getElementById('i1').value), b=parseInt(document.getElementById('i2').value);
+                let d = gcd(a,b); return { res: `${a/d} / ${b/d}`, exp: `Deler på største felles divisor: ${d}` };
+            }},
+            { id: 4, folder: "Matte", name: "Brøk til Desimal", formula: "a / b", html: '<input type="number" id="i1" placeholder="Teller"><input type="number" id="i2" placeholder="Nevner">', calc: () => {
+                let a=parseFloat(document.getElementById('i1').value), b=parseFloat(document.getElementById('i2').value);
+                return { res: a/b, exp: `${a} / ${b} = ${a/b}` };
+            }},
+            { id: 6, folder: "Statistikk", name: "Sannsynlighet", formula: "g / m", html: '<input type="number" id="i1" placeholder="Gunstige"><input type="number" id="i2" placeholder="Mulige">', calc: () => {
+                let g=parseFloat(document.getElementById('i1').value), m=parseFloat(document.getElementById('i2').value);
+                return { res: `${((g/m)*100).toFixed(2)}%`, exp: `${g} / ${m} = ${(g/m).toFixed(4)}` };
+            }},
+            { id: 22, folder: "Statistikk", name: "Gjennomsnitt", formula: "Sum / n", html: '<input type="text" id="i1" placeholder="Eks: 2, 4, 6">', calc: () => {
+                let arr = document.getElementById('i1').value.split(',').map(Number).filter(x => !isNaN(x));
+                let sum = arr.reduce((a,b)=>a+b,0); return { res: sum/arr.length, exp: `Sum: ${sum}, Antall: ${arr.length}` };
+            }},
+            { id: 18, folder: "Fysikk", name: "Bølge", formula: "v = f * λ", html: '<input type="number" id="i1" placeholder="f (Hz)"><input type="number" id="i2" placeholder="λ (m)">', calc: () => {
+                let f=parseFloat(document.getElementById('i1').value), l=parseFloat(document.getElementById('i2').value);
+                return { res: `${f*l} m/s`, graph: (x) => Math.sin(x) };
+            }},
+            { id: 19, folder: "Fysikk", name: "Lydfart", formula: "331.3 + 0.6t", html: '<input type="number" id="i1" placeholder="Temp °C">', calc: () => {
+                let t=parseFloat(document.getElementById('i1').value);
+                return { res: `${(331.3 + 0.606*t).toFixed(2)} m/s` };
+            }},
+            { id: 28, folder: "Fysikk", name: "Fart, Vei, Tid", formula: "v = s / t", html: '<input type="number" id="i1" placeholder="v"><input type="number" id="i2" placeholder="s"><input type="number" id="i3" placeholder="t">', calc: () => {
+                let v=document.getElementById('i1').value, s=document.getElementById('i2').value, t=document.getElementById('i3').value;
+                if(!v) return {res: `v = ${s/t}`}; if(!s) return {res: `s = ${v*t}`}; return {res: `t = ${s/v}`};
+            }},
+            { id: 26, folder: "Økonomi", name: "Rentes rente", formula: "K * v^t", html: '<input type="number" id="i1" placeholder="Kapital"><input type="number" id="i2" placeholder="Vekstf. (f.eks 1.05)"><input type="number" id="i3" placeholder="År">', calc: () => {
+                let k=parseFloat(document.getElementById('i1').value), v=parseFloat(document.getElementById('i2').value), t=parseFloat(document.getElementById('i3').value);
+                return { res: (k*Math.pow(v,t)).toFixed(2), graph: (x) => k*Math.pow(v,x) };
+            }},
+            { id: 29, folder: "Diverse", name: "BMI", formula: "kg / m²", html: '<input type="number" id="i1" placeholder="kg"><input type="number" id="i2" placeholder="meter">', calc: () => {
+                let w=parseFloat(document.getElementById('i1').value), h=parseFloat(document.getElementById('i2').value);
+                let bmi = w/(h*h); return { res: bmi.toFixed(1), exp: bmi < 18.5 ? "Undervekt" : bmi < 25 ? "Normal" : "Overvekt" };
+            }},
+            { id: 20, folder: "Diverse", name: "Om appen", formula: "Info", html: '<p>Utviklet av Leon Aabak. V7 Pro.</p>', calc: () => ({res:"Leon Aabak V7 Pro", exp: "29 funksjoner inkludert."}) }
+        ];
+
+        function renderFolders() {
+            folderView.innerHTML = '';
+            folderView.style.display = 'grid';
+            listView.style.display = 'none';
+            calcView.style.display = 'none';
+            historyPanel.style.display = 'block';
+
+            if(favorites.length > 0) {
+                const favCard = document.createElement('div');
+                favCard.className = 'card glass-panel';
+                favCard.innerHTML = '<span style="font-size: 2rem">⭐</span><br>Favoritter';
+                favCard.onclick = () => openFolder("Favoritter");
+                folderView.appendChild(favCard);
+            }
+
+            const folderNames = [...new Set(calculators.map(c => c.folder))];
+            folderNames.forEach(name => {
+                const card = document.createElement('div');
+                card.className = 'card glass-panel';
+                card.innerHTML = `<span style="font-size: 2rem">📁</span><br>${name}`;
+                card.onclick = () => openFolder(name);
+                folderView.appendChild(card);
+            });
+            renderHistory();
+        }
+
+        function openFolder(name) {
+            currentFolder = name;
+            folderView.style.display = 'none';
+            historyPanel.style.display = 'none';
+            listView.style.display = 'grid';
+            listView.innerHTML = '';
+
+            let list = name === "Favoritter" ? calculators.filter(c => favorites.includes(c.id)) : calculators.filter(c => c.folder === name);
+            
+            list.forEach(c => {
+                const el = document.createElement('div');
+                el.className = 'card glass-panel';
+                const isFav = favorites.includes(c.id);
+                el.innerHTML = `<button class="star-btn ${isFav ? 'active' : ''}" onclick="toggleFav(${c.id}, event)">★</button> ${c.name}`;
+                el.onclick = () => openCalc(c);
+                listView.appendChild(el);
+            });
+        }
+
+        function toggleFav(id, e) {
+            e.stopPropagation();
+            if(favorites.includes(id)) favorites = favorites.filter(x => x !== id);
+            else favorites.push(id);
+            localStorage.setItem('calcFavorites', JSON.stringify(favorites));
+            openFolder(currentFolder);
+        }
+
+        function openCalc(c) {
+            currentCalc = c;
+            listView.style.display = 'none';
+            calcView.style.display = 'block';
+            document.getElementById('btn-back-list').style.display = searchBar.value ? 'none' : 'block';
+            document.getElementById('calc-title').innerText = c.name;
+            document.getElementById('pre-calc-formula').innerText = c.formula;
+            document.getElementById('input-container').innerHTML = c.html;
+            document.getElementById('result-container').style.display = 'none';
+        }
+
+        function showHome() {
+            searchBar.value = '';
+            renderFolders();
+        }
+
+        function executeCalc() {
+            if(!currentCalc) return;
+            const res = currentCalc.calc();
+            document.getElementById('result-box').innerText = "Svar: " + res.res;
+            document.getElementById('explanation-box').innerText = res.exp || "";
+            document.getElementById('result-container').style.display = 'block';
+            
+            if(res.graph) {
+                document.getElementById('graph-container').style.display = 'block';
+                activeGraphFunc = res.graph;
+                drawGraph(res.graph);
+            } else {
+                document.getElementById('graph-container').style.display = 'none';
+                activeGraphFunc = null;
+            }
+
+            historyData = [{name: currentCalc.name, res: res.res}, ...historyData].slice(0, 5);
+            localStorage.setItem('calcHistory', JSON.stringify(historyData));
+            renderHistory();
+        }
+
+        function copyResult() {
+            navigator.clipboard.writeText(document.getElementById('result-box').innerText);
+            const t = document.getElementById('toast'); t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('history-list');
+            list.innerHTML = historyData.length ? historyData.map(h => `<div class="history-item"><b>${h.name}</b><span>${h.res}</span></div>`).join('') : '<i>Ingen historikk enda.</i>';
+        }
+
+        const canvas = document.getElementById('graphCanvas'), ctx = canvas.getContext('2d');
+        function drawGraph(f, hX = null) {
+            canvas.width = canvas.parentElement.clientWidth; canvas.height = 350;
+            const w=canvas.width, h=canvas.height, ox=w/2, oy=h/2, s=25;
+            ctx.clearRect(0,0,w,h);
+            ctx.strokeStyle = '#222'; ctx.beginPath();
+            for(let i=ox%s;i<w;i+=s){ctx.moveTo(i,0);ctx.lineTo(i,h);}
+            for(let i=oy%s;i<h;i+=s){ctx.moveTo(0,i);ctx.lineTo(w,i);} ctx.stroke();
+            ctx.strokeStyle = '#555'; ctx.beginPath(); ctx.moveTo(0,oy); ctx.lineTo(w,oy); ctx.moveTo(ox,0); ctx.lineTo(ox,h); ctx.stroke();
+            ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary'); ctx.lineWidth = 2; ctx.beginPath();
+            for(let px=0; px<=w; px+=2) {
+                let mx=(px-ox)/s, my=f(mx), py=oy-(my*s);
+                if(px===0)ctx.moveTo(px,py); else ctx.lineTo(px,py);
+            } ctx.stroke();
+        }
+
+        searchBar.oninput = () => {
+            const q = searchBar.value.toLowerCase();
+            if(!q) return showHome();
+            folderView.style.display = historyPanel.style.display = 'none';
+            listView.style.display = 'grid';
+            listView.innerHTML = '';
+            const filtered = calculators.filter(c => c.name.toLowerCase().includes(q));
+            filtered.forEach(c => {
+                const el = document.createElement('div');
+                el.className = 'card glass-panel';
+                el.innerHTML = c.name;
+                el.onclick = () => openCalc(c);
+                listView.appendChild(el);
+            });
+        };
+
+        window.onkeydown = (e) => {
+            if(e.key === 'Enter' && calcView.style.display === 'block') executeCalc();
+            if(e.key === 'Escape') showHome();
+        };
+
+        // Kjør ved start
+        renderFolders();
+    </script>
+</body>
+</html>
