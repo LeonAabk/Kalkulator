@@ -219,7 +219,7 @@
     </div>
 
     <div id="toast">Kopiert! ✅</div>
-    <div class="footer">Egen kalk V7 Pro © 2026 | Leon Aabak</div>
+    <div class="footer">Total Kalk © 2026 | Leon Aabak</div>
 
     <script>
         const folderView = document.getElementById('folder-view');
@@ -368,7 +368,7 @@
                 let w=parseFloat(document.getElementById('i1').value), h=parseFloat(document.getElementById('i2').value);
                 let bmi = w/(h*h); return { res: bmi.toFixed(1), exp: bmi < 18.5 ? "Undervekt" : bmi < 25 ? "Normal" : "Overvekt" };
             }},
-            { id: 20, folder: "Diverse", name: "Om appen", formula: "Info", html: '<p>Utviklet av Leon Aabak. V7 Pro.</p>', calc: () => ({res:"Leon Aabak V7 Pro", exp: "29 funksjoner inkludert."}) }
+            { id: 20, folder: "Diverse", name: "Om appen", formula: "Info", html: '<p>Utviklet av Leon Aabak.</p>', calc: () => ({res:"Leon Aabak V7 Pro", exp: "29 funksjoner inkludert."}) }
         ];
 
         function renderFolders() {
